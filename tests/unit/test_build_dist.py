@@ -6,10 +6,36 @@ import pytest
 from scripts import build_dist
 
 
+def test_conda_dll_search_path_is_added_only_to_build_child(monkeypatch, tmp_path):
+    dll_dir = tmp_path / "Library" / "bin"
+    dll_dir.mkdir(parents=True)
+    monkeypatch.setattr(build_dist.sys, "prefix", str(tmp_path))
+    monkeypatch.setenv("PATH", "original-path")
+    env = build_dist.build_environment()
+    expected = [str(dll_dir), "original-path"]
+    if build_dist.sys.platform == "win32":
+        expected.insert(0, str(Path(build_dist.os.environ["SystemRoot"]) / "System32"))
+    assert env["PATH"] == build_dist.os.pathsep.join(expected)
+    assert build_dist.os.environ["PATH"] == "original-path"
 
 
+def test_build_environment_without_conda_dll_directory(monkeypatch, tmp_path):
+    monkeypatch.setattr(build_dist.sys, "prefix", str(tmp_path))
+    monkeypatch.setenv("PATH", "original-path")
+    expected = dict(build_dist.os.environ)
+    if build_dist.sys.platform == "win32":
+        expected["PATH"] = str(Path(build_dist.os.environ["SystemRoot"]) / "System32") + build_dist.os.pathsep + "original-path"
+    assert build_dist.build_environment() == expected
 
 
+def test_windows_system_dlls_take_priority_over_unrelated_path_entries(monkeypatch, tmp_path):
+    monkeypatch.setattr(build_dist.sys, "platform", "win32")
+    monkeypatch.setattr(build_dist.sys, "prefix", str(tmp_path / "env"))
+    monkeypatch.setenv("SystemRoot", str(tmp_path / "Windows"))
+    monkeypatch.setenv("PATH", str(tmp_path / "unrelated-poppler"))
+    env = build_dist.build_environment()
+    assert env["PATH"].split(build_dist.os.pathsep)[0] == str(tmp_path / "Windows" / "System32")
+    assert build_dist.os.environ["PATH"] == str(tmp_path / "unrelated-poppler")
 
 
 class TestOutputFilename:

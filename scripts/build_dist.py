@@ -29,6 +29,20 @@ def ensure_pyinstaller() -> None:
         ) from exc
 
 
+def build_environment() -> dict[str, str]:
+    """Resolve system DLLs before unrelated PATH tools, plus Conda runtime DLLs."""
+    env = dict(os.environ)
+    search_dirs = []
+    if sys.platform == "win32":
+        # Qt uses Windows ICU. A tool such as Poppler may put an incompatible
+        # icuuc.dll on PATH; do not let it shadow the system DLL during analysis.
+        search_dirs.append(str(Path(os.environ["SystemRoot"]) / "System32"))
+    dll_dir = Path(sys.prefix) / "Library" / "bin"
+    if dll_dir.is_dir():
+        search_dirs.append(str(dll_dir))
+    if search_dirs:
+        env["PATH"] = os.pathsep.join([*search_dirs, env.get("PATH", "")])
+    return env
 
 
 def output_filename(version: str, platform: str) -> str:
@@ -148,7 +162,7 @@ def build_windows() -> Path:
         *add_data_args,
         str(ROOT / "main.py"),
     ]
-    subprocess.run(cmd, cwd=ROOT, check=True)
+    subprocess.run(cmd, cwd=ROOT, check=True, env=build_environment())
 
     exe = ROOT / "dist" / output_filename(VERSION, "win32")
     return exe
@@ -177,7 +191,7 @@ def build_macos() -> Path:
         *add_data_args,
         str(ROOT / "main.py"),
     ]
-    subprocess.run(cmd, cwd=ROOT, check=True)
+    subprocess.run(cmd, cwd=ROOT, check=True, env=build_environment())
 
     # dmgbuild reads the .app from dist/<appname>.app via its own settings file —
     # we don't pass the path explicitly. Just compute the output .dmg location.
