@@ -19,7 +19,8 @@ from PyQt6.QtCore import (
 from PyQt6.QtGui import QPainter, QPixmap
 from PyQt6.QtWidgets import QApplication, QWidget
 
-from cat_anim_model import CatAnimModel
+from purr_pause.core.animation_model import CatAnimModel
+from purr_pause.infrastructure.windows import make_click_through
 
 FADE_MS = 500
 FRAME_INTERVAL_MS = 16  # ~60 Hz repaint cadence; frame shown is time-derived
@@ -104,17 +105,8 @@ class CatAnimWindow(QWidget):
             self._timer.start(FRAME_INTERVAL_MS)
 
     def _make_click_through(self) -> None:
-        if sys.platform != "win32":
-            return
-        try:
-            import ctypes
-            hwnd = int(self.winId())
-            style = ctypes.windll.user32.GetWindowLongW(hwnd, -20)
-            ctypes.windll.user32.SetWindowLongW(
-                hwnd, -20, style | 0x00000020 | 0x00080000
-            )
-        except Exception as exc:
-            print(f"cat_anim: click-through setup failed: {exc}", file=sys.stderr)
+        if sys.platform == "win32":
+            make_click_through(int(self.winId()))
 
     # ---- lazy per-frame load + scaling ---------------------------------
 

@@ -1,24 +1,3 @@
-import json
-import shutil
-
-from paths import resource_path, user_data_dir
-
-DEFAULT_CONFIG_PATH = resource_path("config.default.json")
-CONFIG_PATH = user_data_dir() / "config.json"
-
-
-def load_config() -> dict:
-    if not CONFIG_PATH.exists():
-        shutil.copy(DEFAULT_CONFIG_PATH, CONFIG_PATH)
-    with open(CONFIG_PATH, encoding="utf-8") as f:
-        return json.load(f)
-
-
-def save_config(data: dict) -> None:
-    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-
-
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import (
     QDialog, QGridLayout, QHBoxLayout, QLabel,
@@ -36,8 +15,7 @@ ACCENT_HOVER   = "#D99A43"
 
 
 class SettingsDialog(QDialog):
-    interval_changed      = pyqtSignal(int)
-    rest_duration_changed = pyqtSignal(int)
+    saved = pyqtSignal(int, int)
 
     def __init__(
         self,
@@ -126,6 +104,5 @@ class SettingsDialog(QDialog):
         self.setLayout(root)
 
     def _save(self) -> None:
-        self.interval_changed.emit(self.spinbox.value())
-        self.rest_duration_changed.emit(self.rest_spinbox.value())
+        self.saved.emit(self.spinbox.value(), self.rest_spinbox.value())
         self.accept()

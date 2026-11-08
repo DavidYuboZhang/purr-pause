@@ -1,18 +1,15 @@
 """Tests for build_dist.py helper functions."""
 from pathlib import Path
-import sys
-import types
 
 import pytest
 
-# Stub out PyInstaller so build_dist.py can be imported in test environments
-# where PyInstaller is not installed (it is only needed at build time).
-if "PyInstaller" not in sys.modules:
-    sys.modules["PyInstaller"] = types.ModuleType("PyInstaller")
+from scripts import build_dist
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
-import build_dist
+
+
+
+
 
 
 class TestOutputFilename:
@@ -31,8 +28,8 @@ class TestAddDataPairs:
     """Test the separator at the END of each pair, not just `in` — on Windows the
     drive-letter colon (C:/Users/...) means `":" in pair` is trivially true."""
 
-    WIN_ENDINGS = (";.", ";assets", ";assets/cat_anim", ";assets/fonts")
-    MAC_ENDINGS = (":.", ":assets", ":assets/cat_anim", ":assets/fonts")
+    WIN_ENDINGS = (";config", ";assets", ";assets/cat_anim", ";assets/fonts")
+    MAC_ENDINGS = (":config", ":assets", ":assets/cat_anim", ":assets/fonts")
 
     def test_windows_uses_semicolon(self, tmp_path):
         pairs = build_dist.add_data_pairs(tmp_path, "win32")

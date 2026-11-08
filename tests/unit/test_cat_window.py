@@ -1,5 +1,5 @@
 import pytest
-from cat_window import CatWindow
+from purr_pause.ui.rest_card import CatWindow
 
 
 def test_cat_window_can_be_instantiated(qtbot):

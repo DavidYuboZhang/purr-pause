@@ -6,24 +6,29 @@ Produces (under dist/):
   - Windows: PurrPause-{VERSION}-windows.exe (single-file binary)
   - macOS:   PurrPause-{VERSION}-macos.dmg   (drag-to-Applications disk image)
 """
+import os
 import subprocess
 import sys
 from pathlib import Path, PurePosixPath
-
-try:
-    import PyInstaller  # noqa: F401  -- fail fast if missing
-except ImportError as exc:
-    raise SystemExit(
-        f"PyInstaller is not importable from {sys.executable}.\n"
-        "Run `pip install -r requirements.txt` in the active environment, "
-        "or invoke this script with the python that has PyInstaller installed."
-    ) from exc
 
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
-from version import VERSION  # noqa: E402
+from purr_pause.version import VERSION  # noqa: E402
+
+
+def ensure_pyinstaller() -> None:
+    try:
+        import PyInstaller  # noqa: F401  -- fail fast if missing
+    except ImportError as exc:
+        raise SystemExit(
+            f"PyInstaller is not importable from {sys.executable}.\n"
+            "Run `pip install -r requirements.txt` in the active environment, "
+            "or invoke this script with the python that has PyInstaller installed."
+        ) from exc
+
+
 
 
 def output_filename(version: str, platform: str) -> str:
@@ -39,7 +44,7 @@ def add_data_pairs(root: Path, platform: str) -> list[str]:
     """Build the `--add-data` value list with the correct OS separator."""
     sep = ";" if platform == "win32" else ":"
     return [
-        f"{root/'config.default.json'}{sep}.",
+        f"{root/'config'/'config.default.json'}{sep}config",
         f"{root/'assets'/'cat_anim'}{sep}assets/cat_anim",
         f"{root/'assets'/'Mascot Cat Black.png'}{sep}assets",
         f"{root/'assets'/'Mascot Cat White.png'}{sep}assets",
@@ -64,7 +69,8 @@ def emoji_font_path(platform: str) -> PurePosixPath:
 
 def make_icon() -> Path:
     """Render the 🐱 emoji to a multi-size Windows .ico."""
-    dst = ROOT / "assets" / "icon.ico"
+    dst = ROOT / "build" / "icons" / "icon.ico"
+    dst.parent.mkdir(parents=True, exist_ok=True)
     size = 256
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
@@ -97,7 +103,8 @@ def make_icns() -> Path:
     known sbix size (e.g. 160) then PIL-downscale the rendered RGBA image.
     Deferred until we have macOS access to verify the Pillow ICNS writer.
     """
-    dst = ROOT / "assets" / "icon.icns"
+    dst = ROOT / "build" / "icons" / "icon.icns"
+    dst.parent.mkdir(parents=True, exist_ok=True)
     sizes = [16, 32, 48, 64, 128, 256, 512]
     images = []
     for size in sizes:
@@ -119,6 +126,7 @@ def make_icns() -> Path:
 
 
 def build_windows() -> Path:
+    ensure_pyinstaller()
     icon = make_icon()
     print(f"[OK] Generated icon: {icon}")
 
@@ -129,6 +137,9 @@ def build_windows() -> Path:
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--onefile",
+        "--workpath", str(ROOT / "build" / "pyinstaller"),
+        "--specpath", str(ROOT / "build" / "specs"),
+        "--distpath", str(ROOT / "dist"),
         "--windowed",
         "--clean",
         "--noconfirm",
@@ -144,6 +155,7 @@ def build_windows() -> Path:
 
 
 def build_macos() -> Path:
+    ensure_pyinstaller()
     icon = make_icns()
     print(f"[OK] Generated icon: {icon}")
 
@@ -158,6 +170,9 @@ def build_macos() -> Path:
         "--clean",
         "--noconfirm",
         "--name", app_name,
+        "--workpath", str(ROOT / "build" / "pyinstaller"),
+        "--specpath", str(ROOT / "build" / "specs"),
+        "--distpath", str(ROOT / "dist"),
         f"--icon={icon}",
         *add_data_args,
         str(ROOT / "main.py"),

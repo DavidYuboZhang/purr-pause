@@ -1,5 +1,5 @@
 import pytest
-from timer import RestTimer
+from purr_pause.core.timer import RestTimer
 
 
 def test_rest_timer_emits_signal(qtbot):

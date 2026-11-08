@@ -1,6 +1,6 @@
 """Tests for the CatAnimWindow Qt shell.
 
-Frame-selection logic lives in cat_anim_model.py (tested separately). These
+Frame-selection logic lives in core/animation_model.py (tested separately). These
 tests cover wiring, the sprite-loading fallback, lazy per-frame scaling, the
 finish/dismiss path, and the closing fade.
 """
@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from cat_anim_window import CatAnimWindow
+from purr_pause.ui.animation_window import CatAnimWindow
 
 
 @pytest.fixture
