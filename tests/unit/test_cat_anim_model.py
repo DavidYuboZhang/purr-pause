@@ -1,6 +1,6 @@
 import pytest
 
-from cat_anim_model import CatAnimModel
+from purr_pause.core.animation_model import CatAnimModel
 
 
 def make(frame_times=None, duration_ms=1000):

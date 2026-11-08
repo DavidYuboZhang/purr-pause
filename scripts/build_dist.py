@@ -6,24 +6,43 @@ Produces (under dist/):
   - Windows: PurrPause-{VERSION}-windows.exe (single-file binary)
   - macOS:   PurrPause-{VERSION}-macos.dmg   (drag-to-Applications disk image)
 """
+import os
 import subprocess
 import sys
 from pathlib import Path, PurePosixPath
-
-try:
-    import PyInstaller  # noqa: F401  -- fail fast if missing
-except ImportError as exc:
-    raise SystemExit(
-        f"PyInstaller is not importable from {sys.executable}.\n"
-        "Run `pip install -r requirements.txt` in the active environment, "
-        "or invoke this script with the python that has PyInstaller installed."
-    ) from exc
 
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
-from version import VERSION  # noqa: E402
+from purr_pause.version import VERSION  # noqa: E402
+
+
+def ensure_pyinstaller() -> None:
+    try:
+        import PyInstaller  # noqa: F401  -- fail fast if missing
+    except ImportError as exc:
+        raise SystemExit(
+            f"PyInstaller is not importable from {sys.executable}.\n"
+            "Run `pip install -r requirements.txt` in the active environment, "
+            "or invoke this script with the python that has PyInstaller installed."
+        ) from exc
+
+
+def build_environment() -> dict[str, str]:
+    """Resolve system DLLs before unrelated PATH tools, plus Conda runtime DLLs."""
+    env = dict(os.environ)
+    search_dirs = []
+    if sys.platform == "win32":
+        # Qt uses Windows ICU. A tool such as Poppler may put an incompatible
+        # icuuc.dll on PATH; do not let it shadow the system DLL during analysis.
+        search_dirs.append(str(Path(os.environ["SystemRoot"]) / "System32"))
+    dll_dir = Path(sys.prefix) / "Library" / "bin"
+    if dll_dir.is_dir():
+        search_dirs.append(str(dll_dir))
+    if search_dirs:
+        env["PATH"] = os.pathsep.join([*search_dirs, env.get("PATH", "")])
+    return env
 
 
 def output_filename(version: str, platform: str) -> str:
@@ -39,7 +58,7 @@ def add_data_pairs(root: Path, platform: str) -> list[str]:
     """Build the `--add-data` value list with the correct OS separator."""
     sep = ";" if platform == "win32" else ":"
     return [
-        f"{root/'config.default.json'}{sep}.",
+        f"{root/'config'/'config.default.json'}{sep}config",
         f"{root/'assets'/'cat_anim'}{sep}assets/cat_anim",
         f"{root/'assets'/'Mascot Cat Black.png'}{sep}assets",
         f"{root/'assets'/'Mascot Cat White.png'}{sep}assets",
@@ -64,7 +83,8 @@ def emoji_font_path(platform: str) -> PurePosixPath:
 
 def make_icon() -> Path:
     """Render the 🐱 emoji to a multi-size Windows .ico."""
-    dst = ROOT / "assets" / "icon.ico"
+    dst = ROOT / "build" / "icons" / "icon.ico"
+    dst.parent.mkdir(parents=True, exist_ok=True)
     size = 256
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
@@ -97,7 +117,8 @@ def make_icns() -> Path:
     known sbix size (e.g. 160) then PIL-downscale the rendered RGBA image.
     Deferred until we have macOS access to verify the Pillow ICNS writer.
     """
-    dst = ROOT / "assets" / "icon.icns"
+    dst = ROOT / "build" / "icons" / "icon.icns"
+    dst.parent.mkdir(parents=True, exist_ok=True)
     sizes = [16, 32, 48, 64, 128, 256, 512]
     images = []
     for size in sizes:
@@ -119,6 +140,7 @@ def make_icns() -> Path:
 
 
 def build_windows() -> Path:
+    ensure_pyinstaller()
     icon = make_icon()
     print(f"[OK] Generated icon: {icon}")
 
@@ -129,6 +151,9 @@ def build_windows() -> Path:
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--onefile",
+        "--workpath", str(ROOT / "build" / "pyinstaller"),
+        "--specpath", str(ROOT / "build" / "specs"),
+        "--distpath", str(ROOT / "dist"),
         "--windowed",
         "--clean",
         "--noconfirm",
@@ -137,13 +162,14 @@ def build_windows() -> Path:
         *add_data_args,
         str(ROOT / "main.py"),
     ]
-    subprocess.run(cmd, cwd=ROOT, check=True)
+    subprocess.run(cmd, cwd=ROOT, check=True, env=build_environment())
 
     exe = ROOT / "dist" / output_filename(VERSION, "win32")
     return exe
 
 
 def build_macos() -> Path:
+    ensure_pyinstaller()
     icon = make_icns()
     print(f"[OK] Generated icon: {icon}")
 
@@ -158,11 +184,14 @@ def build_macos() -> Path:
         "--clean",
         "--noconfirm",
         "--name", app_name,
+        "--workpath", str(ROOT / "build" / "pyinstaller"),
+        "--specpath", str(ROOT / "build" / "specs"),
+        "--distpath", str(ROOT / "dist"),
         f"--icon={icon}",
         *add_data_args,
         str(ROOT / "main.py"),
     ]
-    subprocess.run(cmd, cwd=ROOT, check=True)
+    subprocess.run(cmd, cwd=ROOT, check=True, env=build_environment())
 
     # dmgbuild reads the .app from dist/<appname>.app via its own settings file —
     # we don't pass the path explicitly. Just compute the output .dmg location.

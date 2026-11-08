@@ -4,11 +4,11 @@
 
 **软提醒，让一只猫陪你做 20-20-20。**
 
-[![Release](https://img.shields.io/github/v/release/David-Zhang-YB/purr-pause?include_prereleases&style=flat-square)](https://github.com/David-Zhang-YB/purr-pause/releases/latest)
-[![License](https://img.shields.io/github/license/David-Zhang-YB/purr-pause?style=flat-square)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/David-Zhang-YB/purr-pause/releases/latest)
+[![Release](https://img.shields.io/github/v/release/DavidYuboZhang/purr-pause?include_prereleases&style=flat-square)](https://github.com/DavidYuboZhang/purr-pause/releases/latest)
+[![License](https://img.shields.io/github/license/DavidYuboZhang/purr-pause?style=flat-square)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/DavidYuboZhang/purr-pause/releases/latest)
 
-**[⬇ 下载 Windows 版](https://github.com/David-Zhang-YB/purr-pause/releases/latest)** · [English README](README.en.md)
+**[⬇ 下载 Windows 版](https://github.com/DavidYuboZhang/purr-pause/releases/latest)** · [English README](README.en.md)
 
 </div>
 
@@ -40,7 +40,7 @@
 
 ## 下载与安装（Windows 10 / 11）
 
-1. 从 [Releases 页面](https://github.com/David-Zhang-YB/purr-pause/releases/latest) 下载 `PurrPause-0.1.0-windows.exe`
+1. 从 [Releases 页面](https://github.com/DavidYuboZhang/purr-pause/releases/latest) 下载 `PurrPause-<版本号>-windows.exe`
 2. 双击运行
 3. 首次启动时，Windows 会显示 **"已保护你的电脑"** 蓝色警告。这是因为本应用未购买代码签名证书——所有未签名的小型独立软件都会出现此提示。
 4. 点击 **"更多信息" → "仍要运行"** 即可（详见上方 SmartScreen 截图的红圈标注）
@@ -51,7 +51,7 @@
 macOS 版本目前**暂未发布**，将在后续小版本中补充。如果你希望先在 Mac 上使用，可以从源码运行：
 
 ```bash
-git clone https://github.com/David-Zhang-YB/purr-pause.git
+git clone https://github.com/DavidYuboZhang/purr-pause.git
 cd purr-pause
 pip install -r requirements.txt
 python main.py
@@ -63,7 +63,10 @@ python main.py
 
 - **工作间隔分钟**（默认 20）
 - **休息时长秒**（默认 20）
-- **猫咪图片路径**（留空使用内置缩略图；填写任意 GIF/PNG 的绝对路径，替换休息卡片左侧的圆形缩略图。不影响走动的猫咪动画——那个是独立的）
+
+图片路径不在设置界面中编辑。高级用户可先退出应用，再修改用户配置中的 `cat_image_path`：留空使用内置缩略图，或填写 PNG、JPG、JPEG、WebP 静态图片的绝对路径。它只替换休息卡片左侧的圆形缩略图，不影响独立的走动猫咪动画。当前内置静态缩略图存在时，自定义 GIF 不会替换它。
+
+Windows 发行版配置位于 `%APPDATA%\PurrPause\config.json`；源码版配置位于仓库根目录 `config.json`，两者相互独立。
 
 ## 隐私与安全
 
@@ -73,15 +76,15 @@ Purr Pause 是一个老老实实的本地工具。源码全部开放，下面是
 - **不动注册表**：运行时代码完全没有注册表读写调用。
 - **不开机自启**：每次需要你主动启动；卸载就是直接删除 .exe。
 - **不删任何文件**：运行时从不调用 `os.remove` / `shutil.rmtree` 一类的文件删除接口。
-- **只写一处**：所有用户配置保存在 `%APPDATA%\PurrPause\config.json` —— Windows 标准的每用户配置目录，所有规范的应用都用这里。
+- **配置位置明确**：Windows 发行版将配置写入 `%APPDATA%\PurrPause\config.json`；源码版写入仓库根目录 `config.json`。
 
-完整源码可在 [GitHub 仓库](https://github.com/David-Zhang-YB/purr-pause) 审计；如果你愿意，把 .exe 拖进 [VirusTotal](https://www.virustotal.com) 扫一下也行。
+完整源码可在 [GitHub 仓库](https://github.com/DavidYuboZhang/purr-pause) 审计；如果你愿意，把 .exe 拖进 [VirusTotal](https://www.virustotal.com) 扫一下也行。
 
 v0.2 计划加入"启动时检查 GitHub Releases 是否有新版"，届时会在设置面板提供开关，并明示请求目标域名 `api.github.com`。
 
 ## 反馈
 
-- Bug 报告 / 功能建议：[GitHub Issues](https://github.com/David-Zhang-YB/purr-pause/issues)
+- Bug 报告 / 功能建议：[GitHub Issues](https://github.com/DavidYuboZhang/purr-pause/issues)
 - 邮箱：yubo.david.zhang@gmail.com
 
 欢迎任何形式的反馈。
@@ -89,12 +92,14 @@ v0.2 计划加入"启动时检查 GitHub Releases 是否有新版"，届时会�
 ## 开发
 
 ```bash
-git clone https://github.com/David-Zhang-YB/purr-pause.git
+git clone https://github.com/DavidYuboZhang/purr-pause.git
 cd purr-pause
 pip install -r requirements.txt
-pytest -v          # 跑单元测试（应全绿）
+python -m pytest -v -ra  # 单元与集成测试
 python main.py     # 启动开发版
 ```
+
+也可使用 `python -m purr_pause` 启动。运行代码位于 `purr_pause/`；Windows Conda 环境、模块职责和配置路径见 [PROJECT.md](PROJECT.md)。测试与构建的实际验收范围见 [STATUS.md](STATUS.md)。
 
 打包发布：
 

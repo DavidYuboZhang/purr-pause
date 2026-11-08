@@ -1,11 +1,11 @@
-from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtCore import QSize, Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QIcon, QPainter, QPixmap
 from PyQt6.QtWidgets import (
-    QApplication, QHBoxLayout, QLabel, QMenu, QMessageBox,
+    QHBoxLayout, QLabel, QMenu,
     QSystemTrayIcon, QWidget, QWidgetAction,
 )
 
-from version import VERSION
+from purr_pause.version import VERSION
 
 
 def _make_cat_icon() -> QIcon:
@@ -54,9 +54,12 @@ def _make_header(menu: QMenu) -> QWidgetAction:
 
 
 class TrayIcon(QSystemTrayIcon):
-    def __init__(self, timer, parent=None):
+    pause_toggle_requested = pyqtSignal()
+    settings_requested = pyqtSignal()
+    quit_requested = pyqtSignal()
+
+    def __init__(self, is_paused: bool = False, parent=None):
         super().__init__(_make_cat_icon(), parent)
-        self._timer = timer
 
         menu = QMenu()
         menu.setMinimumWidth(240)
@@ -86,56 +89,20 @@ class TrayIcon(QSystemTrayIcon):
         menu.addAction(_make_header(menu))
         menu.addSeparator()
 
-        self._pause_action = menu.addAction("暂停")
-        self._pause_action.triggered.connect(self._toggle_pause)
+        self._pause_action = menu.addAction("")
+        self.set_paused(is_paused)
+        self._pause_action.triggered.connect(lambda: self.pause_toggle_requested.emit())
 
         settings_action = menu.addAction("设置")
-        settings_action.triggered.connect(self._open_settings)
+        settings_action.triggered.connect(lambda: self.settings_requested.emit())
 
         menu.addSeparator()
         quit_action = menu.addAction("退出")
-        quit_action.triggered.connect(QApplication.quit)
+        quit_action.triggered.connect(lambda: self.quit_requested.emit())
 
         self.setContextMenu(menu)
         self.setToolTip(f"Purr Pause v{VERSION}")
         self.show()
 
-    def _toggle_pause(self) -> None:
-        if self._timer.is_paused:
-            self._timer.resume()
-            self._pause_action.setText("暂停")
-        else:
-            self._timer.pause()
-            self._pause_action.setText("继续")
-
-    def _open_settings(self) -> None:
-        from settings import SettingsDialog, load_config
-
-        config = load_config()
-        dialog = SettingsDialog(
-            current_interval=config["interval_minutes"],
-            current_rest_duration=config.get("rest_duration_seconds", 20),
-        )
-        dialog.interval_changed.connect(self._on_interval_changed)
-        dialog.rest_duration_changed.connect(self._on_rest_duration_changed)
-        dialog.exec()
-
-    def _on_interval_changed(self, minutes: int) -> None:
-        from settings import load_config, save_config
-        config = load_config()
-        config["interval_minutes"] = minutes
-        save_config(config)
-        self._timer.reset(minutes)
-
-    def _on_rest_duration_changed(self, seconds: int) -> None:
-        from settings import load_config, save_config
-        config = load_config()
-        config["rest_duration_seconds"] = seconds
-        save_config(config)
-
-    def _show_about(self) -> None:
-        QMessageBox.about(
-            None,
-            "关于 Purr Pause",
-            "Purr Pause v1.0\n\n遵循 20-20-20 护眼法则\n每工作 20 分钟，休息 20 秒",
-        )
+    def set_paused(self, paused: bool) -> None:
+        self._pause_action.setText("继续" if paused else "暂停")

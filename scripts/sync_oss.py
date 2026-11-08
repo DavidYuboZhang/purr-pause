@@ -41,7 +41,7 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from version import VERSION  # noqa: E402
+from purr_pause.version import VERSION  # noqa: E402
 
 VERSIONED_NAME = f"PurrPause-{VERSION}-windows.exe"
 LATEST_NAME = "PurrPause-latest-windows.exe"

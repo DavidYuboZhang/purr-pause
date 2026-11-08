@@ -8,7 +8,7 @@ redistributing.
 
 | Asset | Source | License | Notes |
 |---|---|---|---|
-| `config.default.json` | Project source | © 2026 Yubo Zhang, MIT | Default config bundled at build time; copied to the per-user data directory on first run |
+| `config/config.default.json` | Project source | © 2026 Yubo Zhang, MIT | Default config bundled at build time; copied to the per-user data directory on first run |
 | `assets/cat_anim/*.png` (≈ 611 frames, native 1080p) | Green-screen keyed offline from `assets/british_shorthair_interpolation.mp4` by `scripts/extract_cat_frames.py` | Same as the source video — see below | Single continuous animation sequence (enter → rest → exit), 60fps source with static rest frames merged; loaded one frame at a time at runtime |
 | `assets/cat_anim/manifest.json` | Generated alongside the PNGs | Same as the source video | Per-frame `(x, y)` position metadata |
 | `assets/Mascot Cat Black.png` | Placeholder asset created by the project owner | © 2026 Yubo Zhang, MIT (matches repo license) | Legacy tray icon graphic |

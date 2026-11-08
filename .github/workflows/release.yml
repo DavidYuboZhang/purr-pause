@@ -27,13 +27,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Verify version.py matches git tag
+      - name: Verify application version matches git tag
         shell: bash
         run: |
           TAG="${GITHUB_REF_NAME#v}"
-          PY_VERSION=$(python -c "import version; print(version.VERSION)")
+          PY_VERSION=$(python -c "from purr_pause.version import VERSION; print(VERSION)")
           if [ "$TAG" != "$PY_VERSION" ]; then
-            echo "::error::tag '$TAG' does not match version.VERSION '$PY_VERSION'"
+            echo "::error::tag '$TAG' does not match purr_pause.version.VERSION '$PY_VERSION'"
             exit 1
           fi
 

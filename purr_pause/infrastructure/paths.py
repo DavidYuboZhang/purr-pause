@@ -3,13 +3,16 @@ import sys
 from pathlib import Path
 
 
+SOURCE_ROOT = Path(__file__).resolve().parents[2]
+
+
 def resource_path(rel: str) -> Path:
     """Resolve a bundled read-only resource path.
 
     Works in source mode (returns project_root/rel) and in PyInstaller
     --onefile frozen mode (returns _MEIPASS_temp_dir/rel).
     """
-    base = Path(getattr(sys, "_MEIPASS", Path(__file__).parent))
+    base = Path(getattr(sys, "_MEIPASS", SOURCE_ROOT))
     return base / rel
 
 
@@ -23,7 +26,7 @@ def user_data_dir() -> Path:
       - Linux:   $XDG_CONFIG_HOME/PurrPause (or ~/.config/PurrPause)
     """
     if not getattr(sys, "frozen", False):
-        return Path(__file__).parent
+        return SOURCE_ROOT
 
     if sys.platform == "win32":
         appdata = os.environ.get("APPDATA")
