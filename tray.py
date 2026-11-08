@@ -86,7 +86,9 @@ class TrayIcon(QSystemTrayIcon):
         menu.addAction(_make_header(menu))
         menu.addSeparator()
 
-        self._pause_action = menu.addAction("暂停")
+        self._pause_action = menu.addAction("")
+        self._sync_pause_action(timer.is_paused)
+        timer.paused_changed.connect(self._sync_pause_action)
         self._pause_action.triggered.connect(self._toggle_pause)
 
         settings_action = menu.addAction("设置")
@@ -100,13 +102,14 @@ class TrayIcon(QSystemTrayIcon):
         self.setToolTip(f"Purr Pause v{VERSION}")
         self.show()
 
+    def _sync_pause_action(self, paused: bool) -> None:
+        self._pause_action.setText("继续" if paused else "暂停")
+
     def _toggle_pause(self) -> None:
         if self._timer.is_paused:
             self._timer.resume()
-            self._pause_action.setText("暂停")
         else:
             self._timer.pause()
-            self._pause_action.setText("继续")
 
     def _open_settings(self) -> None:
         from settings import SettingsDialog, load_config
