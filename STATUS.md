@@ -6,8 +6,8 @@
 
 | 项目 | 交付摘要 |
 |---|---|
-| 阶段 | 初始化、暂停修复、目录整理与职责拆分已完成，源码及 Windows exe 桌面验收和现场恢复完成；本次按用户授权整理提交并同步草稿 PR |
-| 分支 | codex/pp-handoff-20261108；原 main 基线 06ef603902e34124aefca7ae0d35d5489c8190f7 不变；版本 0.1.2，不合并或发布 |
+| 阶段 | 初始化、暂停修复、目录整理与职责拆分已完成，源码及 Windows exe 桌面验收和现场恢复完成；主线交接通过 [PR #1](https://github.com/DavidYuboZhang/purr-pause/pull/1) 记录 |
+| Git 基线 | 历史起点为 main 的 06ef603902e34124aefca7ae0d35d5489c8190f7；当前分支、HEAD 与远端位置须现场核对，合并状态及合并提交以 PR #1 为准；产品版本仍为 0.1.2 |
 | 代码 | purr_pause 包按 app/controller/rest_session 与 core/infrastructure/ui 分工；保留 python main.py、增加 python -m purr_pause，无需安装项目 |
 | 环境 | Conda PP、Python 3.11.18；PyQt6/Qt 6.12.0、Pillow 13.0.0、pytest 9.2.0、pytest-qt 4.5.0、PyInstaller 6.22.3；20 个 Conda 与 16 个 pip 条目核对一致，pip check 通过 |
 | 提交验证 | 暂停修复索引 87 通过（3.97 秒）；重构索引 111 通过（6.81 秒）；构建/环境索引 114 通过（6.83 秒），均 0 失败/错误/跳过、退出 0；原重构基线 87 项均保留 |
@@ -22,13 +22,13 @@
 - 原桌面最后一次 exe 首次报告退出后进程仍在；再次明确点击退出后于 2026-11-08 00:00:54 正常结束、退出码 0，首个动作原因未确认，不标为已修复的代码缺陷。
 - 电脑接口可读取设置和设值，但点击保存/Tab 无可观测效果；人工保存成功。桌面主要功能结论仍标注用户观察，不称全自动验收。
 - [旧退出与原生诊断](docs/baselines/2026-11-04-exit-and-native-diagnostic.md)维持历史结论；CI 测试门禁、macOS、第二份环境重建及多屏/性能/长时稳定性均不在本次完成范围。
-- 当前工作流不提供 PR 自动测试门禁；无自动检查不等于 CI 通过。草稿 PR 不代表已合并或发布。
+- 当前工作流不提供 PR 自动测试门禁；无自动检查不等于 CI 通过。PR 转正式或合并不代表发行版已发布。
 
 ## 接手入口与交付边界
 
-四个提交依次承载暂停修复、模块重构、构建环境、管理与验证文档；代码验证基线为 `c017acc`，包含文档的实际 HEAD 用 `git log -1` 核对。交付检查要求 `git status --porcelain` 无输出；后续如有输出，先核对是否为新工作，勿直接覆盖。
+原四个提交依次承载暂停修复、模块重构、构建环境、管理与验证文档，另追加一个仅修改本文件的主线交接提交；代码验证基线为 `c017acc`，复用既有 114 项测试与桌面验收。实际分支与 HEAD 用 `git status -sb`、`git log -1` 核对，远端跟踪位置用 `git rev-parse origin/main` 核对；远端最新状态须先获取。交付检查要求 `git status --porcelain` 无输出；后续如有输出，先核对是否为新工作，勿直接覆盖。
 
-同步目标：[分支](https://github.com/DavidYuboZhang/purr-pause/tree/codex/pp-handoff-20261108)，[与 main 比较](https://github.com/DavidYuboZhang/purr-pause/compare/main...codex/pp-handoff-20261108)，草稿 PR 见[PR 列表](https://github.com/DavidYuboZhang/purr-pause/pulls)。实际远端同步状态以 Git/GitHub 为准；本轮授权不包含合并、标签、Release、站点部署或自动合并。
+永久交付入口为 [PR #1](https://github.com/DavidYuboZhang/purr-pause/pull/1)，保留提交、差异、验证说明和合并结果，不依赖交付分支长期存在。本轮授权将 PR 转正式，以 Merge commit 保留原提交历史，快进同步本地 main，并在核验后清理交付分支；不创建标签、Release，不触发站点部署或启用自动合并。执行结果以 PR 与现场 Git 核查为准，不在此预写合并状态或未知的合并 SHA。
 
 本地产物为 `dist/PurrPause-0.1.2-windows.exe`，SHA-256 c4ba461cf1e13341f53f9fbe897cb581b55bcc8b1677d91e13f90ce5d0758c2a；该文件被忽略，不随仓库分支同步。原构建、首次失败包和原始诊断资料由维护者离线保留，报告提供结果和哈希，不承诺克隆后可直接访问本机日志。
 
